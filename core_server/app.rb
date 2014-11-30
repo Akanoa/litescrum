@@ -60,6 +60,7 @@ end
 
 
 get "/auth/register" do
+	locals.delete :api_key
 	locals[:mail_exists] = false
 	slim :register, :locals => locals
 end
@@ -111,6 +112,7 @@ end
 #----------------------------------------------------------
 
 get "/auth/login" do
+	locals.delete :api_key
 	locals[:mail_exists] = true
 	locals[:wrong_password] = false
 	slim :login, :locals => locals
