@@ -1,0 +1,17 @@
+.form-control
+{
+	margin-bottom: 2%;
+}
+
+#footer
+{
+	background-color: rgba(69, 149, 219, 0.73);
+}
+
+#response
+{
+	margin-top: 3%;
+	background-color: rgba(69, 149, 219, 0.53);
+	padding: 2%;
+	border-radius: 5px;
+}
