@@ -36,6 +36,12 @@ available_scopes = ["read_only", "core_client"]
 
 helpers do
 
+	# a helper method to turn a string ID
+	# representation into a BSON::ObjectId
+	def object_id val
+		BSON::ObjectId.from_string(val)
+	end
+
 	def get_user_by_mail mail
 		return settings.mongo_db["users"].find_one(:mail => mail).to_json
 	end
@@ -282,10 +288,37 @@ post "/auth/token/refresh" do
 
 	status 200
 
+	token = JSON.parse(get_token_by_hash params[:secret])
+
+	hash = Digest::SHA1.hexdigest(params[:secret]+Time.now.to_s+salt)
+	refresh_token = Digest::SHA1.hexdigest(hash)
+
+	if token["type"] == "api_key"
+		lifetime = Time.now + (60*60*3) #lifetime: 3h
+	elsif token["type"] == "access"
+		lifetime = Time.now + (60*60*24*30*3) #lifetime: 3 months
+	end
+
+	id = object_id(token["_id"]["$oid"])
+
+	result =  settings.mongo_db['tokens'].update(
+		{:_id => id},
+		{
+			"$set" =>{
+				:hash => hash,
+				:refresh_token => refresh_token,
+				:lifetime => lifetime
+			} 
+		}
+	)
+
 	datas = {
 		"error" => 200,
-		"message" => "success"
+		"life_time" => lifetime,
+		"token" => hash,
+		"refresh_token" => refresh_token
 	}
+
 	"#{datas}"
 end
 
