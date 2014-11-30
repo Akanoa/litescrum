@@ -1,0 +1,9 @@
+gem "sinatra"
+gem "sinatra/reloader"
+gem 'sinatra/formkeeper'
+gem "slim"
+gem "digest"
+gem "time"
+gem 'mongo'
+gem 'json'
+gem 'json/ext'
