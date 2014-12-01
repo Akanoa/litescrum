@@ -53,6 +53,45 @@ helpers do
 	def get_token_by_id id
 		return settings.mongo_db["tokens"].find_one(:_id => BSON::ObjectId(id)).to_json
 	end
+
+	def verif_token param
+		#check if secret is provided
+		if !params[:secret]
+			datas = {
+				"error" => 403,
+				"message" => "secret must be provided"
+			}
+			return false, "#{datas}"
+		end
+	
+		#retrieve token from api_key
+		token = get_token_by_hash params[:secret]
+		token_exists = token=="null" ? false : true
+
+		#check if provided token exists
+		if !token_exists
+
+			datas = {
+				"error" => 403,
+				"message" => "Provided secret is incorrect"
+			}
+			return false, "#{datas}"
+		end
+
+		token = JSON.parse(token)
+
+		#check if provided token is correct
+		if token["hash"] != params[:secret]
+			datas = {
+				"error" => 403,
+				"message" => "Wrong secret"
+			}
+			return false, "#{datas}"
+		end
+
+		return true, token
+
+	end
 end
 
 #----------------------------------------------------------
@@ -164,49 +203,21 @@ end
 #----------------------------------------------------------
 
 post "/auth/token" do
-	api_key = params[:secret]
 	content_type :json
-
 	status 403
 
-
-	#check if secret is provided
-	if !api_key
-		datas = {
-			"error" => 403,
-			"message" => "You must provide a secret with you request, check documention for more information"
-		}
-		return "#{datas}"
+	ok, result = verif_token params
+	if !ok
+		return result
 	end
 
-	#retrieve token from api_key
-	token = get_token_by_hash api_key
-	token_exists = token=="null" ? false : true
-
-	#check if provided token exists
-	if !token_exists
-
-		datas = {
-			"error" => 403,
-			"message" => "Provided secret is incorrect"
-		}
-		return "#{datas}"
-	end
-
-	token = JSON.parse(token)
-
-	#check if provided token is correct
-	if token["hash"] != params[:secret]
-		datas = {
-			"error" => 403,
-			"message" => "Wrong secret"
-		}
-		return "#{datas}"
-	end
+	token = result
 
 	#if user asks an unknown scope, generate an read_only token
 	scope = (params[:scope] and available_scopes.include? params[:scope]) ? params[:scope] : "read_only"
 	lifetime = Time.now + (60*60*3)
+
+	owner_api = object_id(token["_id"]["$oid"])
 
 	#generate new token_access
 	datas = {
@@ -216,7 +227,7 @@ post "/auth/token" do
 		"status" => "active",
 		"type" => "access",
 		"refresh_token" => Digest::SHA1.hexdigest(hash.to_s),
-		"owner_api" => params[:secret]
+		"owner_api" => owner_api
 	}
 
 	settings.mongo_db['tokens'].insert datas
@@ -237,14 +248,12 @@ post "/auth/token/refresh" do
 	status 403
 	content_type :json
 
-	#check if secret is provided
-	if !params[:secret]
-		datas = {
-			"error" => 403,
-			"message" => "secret must be provided"
-		}
-		return "#{datas}"
+	ok, result = verif_token params
+	if !ok
+		return result
 	end
+
+	token = result	
 
 	#check if refresh_token is provided
 	if !params[:refresh_token]
@@ -255,30 +264,6 @@ post "/auth/token/refresh" do
 		return "#{datas}"
 	end
 
-	#retrieve token from api_key
-	token = get_token_by_hash params[:secret]
-	token_exists = token=="null" ? false : true
-
-	#check if provided token exists
-	if !token_exists
-
-		datas = {
-			"error" => 403,
-			"message" => "Provided secret is incorrect"
-		}
-		return "#{datas}"
-	end
-
-	token = JSON.parse(token)
-
-	#check if provided token is correct
-	if token["hash"] != params[:secret]
-		datas = {
-			"error" => 403,
-			"message" => "Wrong secret"
-		}
-		return "#{datas}"
-	end
 
 	#check if provided refresh_token is correct
 	if token["refresh_token"] != params[:refresh_token]
@@ -291,15 +276,13 @@ post "/auth/token/refresh" do
 
 	status 200
 
-	token = JSON.parse(get_token_by_hash params[:secret])
-
 	hash = Digest::SHA1.hexdigest(params[:secret]+Time.now.to_s+salt)
 	refresh_token = Digest::SHA1.hexdigest(hash)
 
 	if token["type"] == "api_key"
-		lifetime = Time.now + (60*60*3) #lifetime: 3h
+		lifetime = Time.now + (60*60*24*30*3) #lifetime: 3h
 	elsif token["type"] == "access"
-		lifetime = Time.now + (60*60*24*30*3) #lifetime: 3 months
+		lifetime = Time.now +  (60*60*3)#lifetime: 3 months
 	end
 
 	id = object_id(token["_id"]["$oid"])
@@ -328,6 +311,66 @@ end
 #----------------------------------------------------------
 #*************************REST*****************************
 #----------------------------------------------------------
+
+
+#----------------------------------------------------------
+# users routes
+#----------------------------------------------------------
+
+#retrieve users
+get "/users" do
+	status 403
+	content_type :json
+	
+	ok, result = verif_token params
+	if !ok
+		return result
+	end
+
+	token = result		
+
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
+
+#retrieve project id
+get "/users/:id" do
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
+
+#create a project
+post "/users" do
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
+
+#update a project
+put "/users/:id" do
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
+
 
 #----------------------------------------------------------
 # projects routes
