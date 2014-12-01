@@ -88,15 +88,15 @@ post "/auth/register" do
 		slim :register, :locals => locals
 	else
 		locals[:api_key] = hash = Digest::SHA1.hexdigest(params[:password]+Time.now.to_s+salt)
-		locals[:refresh] = hash = Digest::SHA1.hexdigest(hash)
+		locals[:refresh] = refresh_token = Digest::SHA1.hexdigest(hash)
 
 		datas = {
 					"hash" => hash,
 					"scope" => "core_client",
-					"life_time" => Time.now + (60*60*24*30*3),
+					"lifetime" => Time.now + (60*60*24*30*3),
 					"status" => "active",
 					"type" => "api_key",
-					"refresh_token" => Digest::SHA1.hexdigest(hash)
+					"refresh_token" => refresh_token
 				}
 
 		new_id = settings.mongo_db['tokens'].insert datas
@@ -212,10 +212,11 @@ post "/auth/token" do
 	datas = {
 		"hash" => Digest::SHA1.hexdigest(params[:secret]+Time.now.to_s+salt),
 		"scope" => scope,
-		"life_time" => lifetime, #lifetime: 3h
+		"lifetime" => lifetime, #lifetime: 3h
 		"status" => "active",
 		"type" => "access",
-		"refresh_token" => Digest::SHA1.hexdigest(hash.to_s)
+		"refresh_token" => Digest::SHA1.hexdigest(hash.to_s),
+		"owner_api" => params[:secret]
 	}
 
 	settings.mongo_db['tokens'].insert datas
@@ -224,7 +225,7 @@ post "/auth/token" do
 
 	datas = {
 		"error" => 200,
-		"life_time" => lifetime,
+		"lifetime" => lifetime,
 		"token" => datas["hash"],
 		"refresh_token" => datas["refresh_token"]
 	}
@@ -316,7 +317,7 @@ post "/auth/token/refresh" do
 
 	datas = {
 		"error" => 200,
-		"life_time" => lifetime,
+		"lifetime" => lifetime,
 		"token" => hash,
 		"refresh_token" => refresh_token
 	}
@@ -391,4 +392,9 @@ get "/test/:mail" do
 	puts "echec"
 	"yolo"
 	end
+end
+
+
+get "/" do
+	"Hello world hay 32"
 end
