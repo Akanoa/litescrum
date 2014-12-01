@@ -206,12 +206,13 @@ post "/auth/token" do
 
 	#if user asks an unknown scope, generate an read_only token
 	scope = (params[:scope] and available_scopes.include? params[:scope]) ? params[:scope] : "read_only"
+	lifetime = Time.now + (60*60*3)
 
 	#generate new token_access
 	datas = {
 		"hash" => Digest::SHA1.hexdigest(params[:secret]+Time.now.to_s+salt),
 		"scope" => scope,
-		"life_time" => Time.now + (60*60*3), #lifetime: 3h
+		"life_time" => lifetime, #lifetime: 3h
 		"status" => "active",
 		"type" => "access",
 		"refresh_token" => Digest::SHA1.hexdigest(hash.to_s)
@@ -223,7 +224,7 @@ post "/auth/token" do
 
 	datas = {
 		"error" => 200,
-		"life_time" => 60*60*3,
+		"life_time" => lifetime,
 		"token" => datas["hash"],
 		"refresh_token" => datas["refresh_token"]
 	}
@@ -233,6 +234,7 @@ end
 
 post "/auth/token/refresh" do
 	status 403
+	content_type :json
 
 	#check if secret is provided
 	if !params[:secret]
@@ -322,7 +324,57 @@ post "/auth/token/refresh" do
 	"#{datas}"
 end
 
+#----------------------------------------------------------
+#*************************REST*****************************
+#----------------------------------------------------------
 
+#----------------------------------------------------------
+# projects routes
+#----------------------------------------------------------
+
+#retrieve projects
+get "/projects" do
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
+
+#retrieve project id
+get "/projects/:id" do
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
+
+#create a project
+post "/projects" do
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
+
+#update a project
+put "/projects/:id" do
+	status 404
+	content_type :json
+	datas = {
+		"error" => 404,
+		"message" => "Not Implemented yet"
+	}
+	"#{datas}"
+end
 
 #----------------------------------------------------------
 # test views
