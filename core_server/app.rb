@@ -112,11 +112,24 @@ helpers do
 
 	def check_params params,required
 		required.each do |param|
-			puts params.keys
 			if !params.keys.include? param
 				datas = {
 					"error" => 403,
 					"message" => "Provided parameters are incorrects"
+				}
+				return false, "#{datas.to_json}"
+			end
+		end
+
+		return true, nil
+	end 
+
+	def check_headers env,required
+		required.each do |param|
+			if !env.keys.include? "HTTP_"+param.split.join("_").upcase
+				datas = {
+					"error" => 403,
+					"message" => "Provided parameters are incorrects, header #{param} required"
 				}
 				return false, "#{datas.to_json}"
 			end
@@ -373,10 +386,18 @@ get "/projects" do
 	status 403
 	content_type :json
 
+	ok, result = check_headers env,["secret"]
+	if !ok
+		return result
+	end
+
+	params["secret"] = env["HTTP_SECRET"]
+ 
 	ok, result = verif_token params
 	if !ok
 		return result
 	end
+
 
 	token = result	
 	status 200
@@ -386,15 +407,12 @@ get "/projects" do
 	datas = {}
 
 	results.each do |project|
-		puts "i"
 		datas.merge!(project["_id"]["$oid"] => {:sprints=>project["sprints"], :name => project["name"]})
 	end
 
 	#datas["error"] = 200
 
 	datas.to_json
-
-	puts datas
 
 	"#{datas.to_json}"
 end
