@@ -30,6 +30,13 @@ locals = {:author => "Noa", :host => "http://localhost:4567"}
 salt = "}!=zY1RsS-IV{bO?GYK,4h~lhcu[Djh%S$(/=>+0B_onaDA2@S!!@$tsE-s-TTKq"
 available_scopes = ["read_only", "core_client"]
 
+#define how many time a token is valid from his creation
+lifetime_tokens = {
+	:admin_token => (60*60*24*365*1000),#lifetime: 1000 years
+	:api_token   => (60*60*24*365),#lifetime: 1 years
+	:acces_token => (60*60*3)#lifetime: 3 hours
+}
+
 #----------------------------------------------------------
 # customs helpers
 #----------------------------------------------------------
@@ -38,7 +45,7 @@ helpers do
 
 	# a helper method to turn a string ID
 	# representation into a BSON::ObjectId
-	def object_id val
+	def to_object_id val
 		BSON::ObjectId.from_string(val)
 	end
 
@@ -54,14 +61,15 @@ helpers do
 		return settings.mongo_db["tokens"].find_one(:_id => BSON::ObjectId(id)).to_json
 	end
 
-	def verif_token param
+	def verif_token params,try_expirating=true
+
 		#check if secret is provided
 		if !params[:secret]
 			datas = {
 				"error" => 403,
 				"message" => "secret must be provided"
 			}
-			return false, "#{datas}"
+			return false, "#{datas.to_json}"
 		end
 	
 		#retrieve token from api_key
@@ -75,7 +83,7 @@ helpers do
 				"error" => 403,
 				"message" => "Provided secret is incorrect"
 			}
-			return false, "#{datas}"
+			return false, "#{datas.to_json}"
 		end
 
 		token = JSON.parse(token)
@@ -86,12 +94,36 @@ helpers do
 				"error" => 403,
 				"message" => "Wrong secret"
 			}
-			return false, "#{datas}"
+			return false, "#{datas.to_json}"
+		end
+
+		#check token's lifetime
+		if Time.parse(token["lifetime"]) < Time.now and try_expirating
+			datas = {
+				"error" => 403,
+				"message" => "Expirated token"
+			}
+			return false, "#{datas.to_json}"
 		end
 
 		return true, token
 
 	end
+
+	def check_params params,required
+		required.each do |param|
+			puts params.keys
+			if !params.keys.include? param
+				datas = {
+					"error" => 403,
+					"message" => "Provided parameters are incorrects"
+				}
+				return false, "#{datas.to_json}"
+			end
+		end
+
+		return true, nil
+	end 
 end
 
 #----------------------------------------------------------
@@ -132,7 +164,7 @@ post "/auth/register" do
 		datas = {
 					"hash" => hash,
 					"scope" => "core_client",
-					"lifetime" => Time.now + (60*60*24*30*3),
+					"lifetime" => Time.now + lifetime_tokens[:api_token],
 					"status" => "active",
 					"type" => "api_key",
 					"refresh_token" => refresh_token
@@ -215,9 +247,9 @@ post "/auth/token" do
 
 	#if user asks an unknown scope, generate an read_only token
 	scope = (params[:scope] and available_scopes.include? params[:scope]) ? params[:scope] : "read_only"
-	lifetime = Time.now + (60*60*3)
+	lifetime = Time.now + lifetime_tokens[:acces_token ]
 
-	owner_api = object_id(token["_id"]["$oid"])
+	owner_api = to_object_id(token["_id"]["$oid"])
 
 	#generate new token_access
 	datas = {
@@ -241,14 +273,14 @@ post "/auth/token" do
 		"refresh_token" => datas["refresh_token"]
 	}
 
-	"#{datas}"
+	"#{datas.to_json}"
 end
 
 post "/auth/token/refresh" do
 	status 403
 	content_type :json
 
-	ok, result = verif_token params
+	ok, result = verif_token params,false
 	if !ok
 		return result
 	end
@@ -261,7 +293,7 @@ post "/auth/token/refresh" do
 			"error" => 403,
 			"message" => "refresh_token must be provided"
 		}
-		return "#{datas}"
+		return "#{datas.to_json}"
 	end
 
 
@@ -271,7 +303,7 @@ post "/auth/token/refresh" do
 			"error" => 403,
 			"message" => "Wrong refresh_token"
 		}
-		return "#{datas}"
+		return "#{datas.to_json}"
 	end
 
 	status 200
@@ -280,12 +312,12 @@ post "/auth/token/refresh" do
 	refresh_token = Digest::SHA1.hexdigest(hash)
 
 	if token["type"] == "api_key"
-		lifetime = Time.now + (60*60*24*30*3) #lifetime: 3h
+		lifetime = Time.now + lifetime_tokens[:api_token]
 	elsif token["type"] == "access"
-		lifetime = Time.now +  (60*60*3)#lifetime: 3 months
+		lifetime = Time.now +  lifetime_tokens[:acces_token]
 	end
 
-	id = object_id(token["_id"]["$oid"])
+	id = to_object_id(token["_id"]["$oid"])
 
 	result =  settings.mongo_db['tokens'].update(
 		{:_id => id},
@@ -305,7 +337,7 @@ post "/auth/token/refresh" do
 		"refresh_token" => refresh_token
 	}
 
-	"#{datas}"
+	"#{datas.to_json}"
 end
 
 #----------------------------------------------------------
@@ -319,15 +351,7 @@ end
 
 #retrieve users
 get "/users" do
-	status 403
-	content_type :json
 	
-	ok, result = verif_token params
-	if !ok
-		return result
-	end
-
-	token = result		
 
 	status 404
 	content_type :json
@@ -335,41 +359,9 @@ get "/users" do
 		"error" => 404,
 		"message" => "Not Implemented yet"
 	}
-	"#{datas}"
+	"#{datas.to_json}"
 end
 
-#retrieve project id
-get "/users/:id" do
-	status 404
-	content_type :json
-	datas = {
-		"error" => 404,
-		"message" => "Not Implemented yet"
-	}
-	"#{datas}"
-end
-
-#create a project
-post "/users" do
-	status 404
-	content_type :json
-	datas = {
-		"error" => 404,
-		"message" => "Not Implemented yet"
-	}
-	"#{datas}"
-end
-
-#update a project
-put "/users/:id" do
-	status 404
-	content_type :json
-	datas = {
-		"error" => 404,
-		"message" => "Not Implemented yet"
-	}
-	"#{datas}"
-end
 
 
 #----------------------------------------------------------
@@ -378,46 +370,106 @@ end
 
 #retrieve projects
 get "/projects" do
-	status 404
+	status 403
 	content_type :json
-	datas = {
-		"error" => 404,
-		"message" => "Not Implemented yet"
-	}
-	"#{datas}"
+
+	ok, result = verif_token params
+	if !ok
+		return result
+	end
+
+	token = result	
+	status 200
+
+	results = JSON.parse(settings.mongo_db['projects'].find.to_a.to_json)
+
+	datas = {}
+
+	results.each do |project|
+		puts "i"
+		datas.merge!(project["_id"]["$oid"] => {:sprints=>project["sprints"], :name => project["name"]})
+	end
+
+	#datas["error"] = 200
+
+	datas.to_json
+
+	puts datas
+
+	"#{datas.to_json}"
 end
 
 #retrieve project id
 get "/projects/:id" do
-	status 404
+	status 403
 	content_type :json
+
+	ok, result = verif_token params
+	if !ok
+		return result
+	end
+
+	token = result	
+	status 404
 	datas = {
 		"error" => 404,
 		"message" => "Not Implemented yet"
 	}
-	"#{datas}"
+	"#{datas.to_json}"
 end
 
 #create a project
 post "/projects" do
-	status 404
+	status 403
 	content_type :json
+
+	ok, result = verif_token params
+	if !ok
+		return result
+	end
+
+	token = result	
+	status 200
+
+	#check if all parameters are provided
+	ok, res = check_params params,["name"]
+
+	if !ok
+		return res
+	end	
+
 	datas = {
-		"error" => 404,
-		"message" => "Not Implemented yet"
+		"name" => params[:name],
+		"state" => "active",
+		"sprints" => []
 	}
-	"#{datas}"
+
+	settings.mongo_db['projects'].insert datas
+
+	datas = {
+		"error" => 200,
+		"message" => "Project inserted"
+	}
+	"#{datas.to_json}"
 end
 
 #update a project
 put "/projects/:id" do
-	status 404
+	status 403
 	content_type :json
+
+	ok, result = verif_token params
+	if !ok
+		return result
+	end
+
+	token = result	
+	status 404
 	datas = {
 		"error" => 404,
 		"message" => "Not Implemented yet"
 	}
-	"#{datas}"
+	"#{datas.to_json}"
 end
 
 #----------------------------------------------------------
