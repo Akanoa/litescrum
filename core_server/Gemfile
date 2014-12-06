@@ -6,3 +6,4 @@ gem 'sinatra-formkeeper'
 gem "slim"
 gem 'mongo'
 gem 'json'
+gem 'stylus'

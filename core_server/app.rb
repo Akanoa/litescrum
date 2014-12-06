@@ -4,13 +4,18 @@
 require "sinatra"
 require "sinatra/reloader"
 require 'sinatra/formkeeper'
+require 'sinatra/advanced_routes'
 require "slim"
 require "digest"
 require "time"
+require 'yaml'
 
 require 'mongo'
 require 'json'
 require 'json/ext' # required for .to_json
+
+require "stylus"
+require 'stylus/tilt'
 
 
 #---------------------------------------------------------
@@ -139,10 +144,39 @@ helpers do
 	end 
 end
 
+
 #----------------------------------------------------------
 # ****************CONTROLLERS******************************
 #----------------------------------------------------------
 
+
+#----------------------------------------------------------
+# root views
+#----------------------------------------------------------
+
+get "/" do
+	slim :doc, :locals => locals
+end
+
+#----------------------------------------------------------
+# routes views
+#----------------------------------------------------------
+
+get '/routes' do
+	routes_tmp = []
+	routes = []
+	Sinatra::Application.each_route do |route|
+		if route.verb != "HEAD"
+	 		routes_tmp.push [route.verb, route.path]
+	 	end
+	end
+	routes_tmp.sort_by! {|m| m[1]}
+	routes_tmp.each do |route|
+		routes.push route.join(" ")
+	end
+	locals[:routes] = routes
+	slim :home, :locals => locals
+end
 
 #----------------------------------------------------------
 # register views
@@ -494,20 +528,6 @@ end
 # test views
 #----------------------------------------------------------
 
-get "/test/:mail" do
-	params[:mail]
-	value = (get_user_by_mail params[:mail]) == "null" ? false : true
-	puts value
-	if value 
-	puts "pas fail"
-	"#{value}"
-	else
-	puts "echec"
-	"yolo"
-	end
-end
-
-
-get "/" do
-	"Hello world hay 32"
+get "/test/docs" do
+	datas = YAML.load("--- foo")
 end
