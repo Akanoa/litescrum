@@ -1,7 +1,59 @@
-.row
-	.container.col-md-12
-		ul
-			li 
-				span.label.label-warning POST
-			li
-				span.label.label-info GET
+.doc ng-app='' ng-controller="MainCtrl"
+	-for section in datas["routes"].keys do
+		- bloc_id+=1
+		.row
+			.col-md-12
+				p ng-click="notification#{bloc_id} = !notification#{bloc_id}" #{section} 
+				.container.notification ng-show="notification#{bloc_id}"
+					-for action in datas["routes"][section] do
+						- bloc_id+=1
+						.row
+							.col-md-11.col-md-offset-1
+								p ng-click="notification#{bloc_id} = !notification#{bloc_id}" #{action["verb"]} #{action["path"]} #{action["description"]}
+								.container ng-show="notification#{bloc_id}"
+									-if action["headers"]
+										.row
+											.col-md-12.col-md-offset-0
+												table.table
+													caption headers
+													tr 
+														th name
+														th description
+														th type
+														th require
+													-for header in action["headers"] do
+														tr
+															td #{header["var"]}
+															td #{header["description"]}
+															td #{header["type"]}
+															td #{header["require"]}
+									-if action["params"]
+										.row
+											.col-md-12.col-md-offset-0
+													table.table
+														caption params
+														tr 
+															th name
+															th description
+															th type
+															th require
+														-for param in action["params"] do
+															tr
+																td #{param["var"]}
+																td #{param["description"]}
+																td #{param["type"]}
+																td #{param["require"]}
+									-if action["returns"]
+										.row
+											.col-md-12.col-md-offset-0
+													table.table
+														caption returns
+														tr 
+															th status
+															th description
+															th type
+														-for return_ in action["returns"] do
+															tr
+																td #{return_["status"]}
+																td #{return_["message"]}
+																td #{return_["type"]}

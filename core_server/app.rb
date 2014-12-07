@@ -30,7 +30,7 @@ configure do
   set :mongo_db, conn.db('litescrum')
 end
 
-locals = {:author => "Noa", :host => "http://localhost:4567"}
+locals = {:author => "Noa", :host => "http://localhost:4567", :default_title => "Api litescrum"}
 
 salt = "}!=zY1RsS-IV{bO?GYK,4h~lhcu[Djh%S$(/=>+0B_onaDA2@S!!@$tsE-s-TTKq"
 available_scopes = ["read_only", "core_client"]
@@ -155,6 +155,10 @@ end
 #----------------------------------------------------------
 
 get "/" do
+	datas = JSON.parse(File.read("docs/api_doc.json"))
+	puts datas["routes"].keys
+	locals[:datas] = datas
+	locals[:bloc_id] = 0
 	slim :doc, :locals => locals
 end
 
@@ -529,5 +533,7 @@ end
 #----------------------------------------------------------
 
 get "/test/docs" do
-	datas = YAML.load("--- foo")
+	content_type :json
+	datas = JSON.parse(File.read("docs/api_doc.json"))
+	"#{JSON.pretty_generate(datas)}"
 end

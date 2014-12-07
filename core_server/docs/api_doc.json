@@ -1,0 +1,157 @@
+{
+  "routes": {
+    "Authentification":[
+      {
+        "path":"/auth/token",
+        "verb":"POST",
+        "description":"retrieves an access token",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "scope",
+            "description": "wanted scope",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"Token as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/auth/refresh",
+        "verb":"POST",
+        "description":"refresh a token",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "rotten token",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "token_refresh",
+            "description": "refresh token linked to rotten token",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"Token as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      }
+    ],
+    "Projects": [
+      {
+        "path":"/projects",
+        "verb":"GET",
+        "description":"retieves all projects allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Projects as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/projects/:id",
+        "verb":"GET",
+        "description":"retrieves project with id==:id allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Project as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/projects",
+        "verb":"POST",
+        "description":"create a project",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "name",
+            "description":"name of new project",
+            "type":"string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"Project inserted",
+            "type":"JSON"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      } 
+    ]
+  },
+  "models": {}
+}

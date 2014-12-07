@@ -2,9 +2,15 @@ guard 'stylus', :output => 'public/css', :all_on_start => true, :all_on_change =
 	watch(%r{^style/(.+\.styl)$})
 end
 
+guard 'coffeescript', :output => 'public/js' do
+  watch(%r{^script/(.+\.coffee)$})
+end
+
 guard 'livereload' do 
   watch("app.rb")
   watch(%r{views/.+\.(erb|haml|slim|styl)$})
   watch(%r{public/css/.+\.(css|js)$})
   watch(%r{^style/(.+\.styl)$})
+  watch(%r{^docs/(.+\.json)$})
+  watch(%r{^script/(.+\.coffee)$})
 end

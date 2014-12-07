@@ -1,7 +1,10 @@
 doctype html
 html
   head
-    title Register your app
+    -if defined?title 
+      title #{title}
+    -else
+      title #{default_title}
     meta name="keywords" content="template language"
     link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css" media="screen"
     link rel="stylesheet" href="/css/bootstrap-theme.min.css" type="text/css" media="screen"
@@ -9,6 +12,8 @@ html
 
     script src='/js/jquery.min.js' 
     script src='/js/bootstrap.min.js' 
+    script src='/js/angular.js' 
+    script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.27/angular.min.js"
 
   body
   	#wrap
