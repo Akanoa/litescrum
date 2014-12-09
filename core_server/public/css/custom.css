@@ -13,3 +13,19 @@ body {
   padding: 2%;
   border-radius: 5px;
 }
+.doc .container {
+  background-color: rgba(219,208,214,0.1);
+  padding: 1%;
+  border-radius: 5px;
+  margin-bottom: 2%;
+  margin-top: 1%;
+}
+.doc .container_action {
+  margin-bottom: 1%;
+}
+.doc .success_status {
+  color: #008000;
+}
+.doc .error_status {
+  color: #f00;
+}
