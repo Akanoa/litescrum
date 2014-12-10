@@ -1,0 +1,9 @@
+source 'https://rubygems.org'
+
+gem "sinatra"
+gem "sinatra-reloader"
+gem 'sinatra-formkeeper'
+gem "slim"
+gem 'mongo'
+gem 'json'
+gem 'stylus'

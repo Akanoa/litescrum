@@ -9,14 +9,18 @@
 						- bloc_id+=1
 						- type_label = get_label_type action["verb"]
 						.row
-							.col-md-11.col-md-offset-1
-								p ng-click="notification#{bloc_id} = !notification#{bloc_id}" 
-									span.label class="label-#{type_label}"  #{action["verb"]}   
-									| #{action["path"]} #{action["description"]}
-								.container ng-show="notification#{bloc_id}"
+							.col-md-11.col-md-offset-1 
+								.row.container_action ng-click="notification#{bloc_id} = !notification#{bloc_id}"
+									.col-md-1
+										span.label class="label-#{type_label}"  #{action["verb"]}
+									.col-md-2
+										span class="path_doc" #{action["path"]}
+									.col-md-9
+										span class="path_description" #{action["description"]}
+								.container.col-md-11 ng-show="notification#{bloc_id}"
 									-if action["headers"]
 										.row
-											.col-md-12.col-md-offset-0
+											.col-md-12
 												table.table
 													caption headers
 													tr 
@@ -32,7 +36,7 @@
 															td #{header["require"]}
 									-if action["params"]
 										.row
-											.col-md-12.col-md-offset-0
+											.col-md-12
 													table.table
 														caption params
 														tr 
@@ -48,7 +52,7 @@
 																td #{param["require"]}
 									-if action["returns"]
 										.row
-											.col-md-12.col-md-offset-0
+											.col-md-12
 													table.table
 														caption returns
 														tr 
@@ -56,7 +60,8 @@
 															th description
 															th type
 														-for return_ in action["returns"] do
+															p #{set_color_status return_['status']}
 															tr
-																td #{return_["status"]}
+																td class="#{set_color_status return_['status']}" #{return_["status"]}
 																td #{return_["message"]}
 																td #{return_["type"]}

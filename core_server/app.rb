@@ -71,7 +71,7 @@ helpers do
 		#check if secret is provided
 		if !params[:secret]
 			datas = {
-				"error" => 403,
+				"status" => 403,
 				"message" => "secret must be provided"
 			}
 			return false, "#{datas.to_json}"
@@ -85,7 +85,7 @@ helpers do
 		if !token_exists
 
 			datas = {
-				"error" => 403,
+				"status" => 403,
 				"message" => "Provided secret is incorrect"
 			}
 			return false, "#{datas.to_json}"
@@ -96,7 +96,7 @@ helpers do
 		#check if provided token is correct
 		if token["hash"] != params[:secret]
 			datas = {
-				"error" => 403,
+				"status" => 403,
 				"message" => "Wrong secret"
 			}
 			return false, "#{datas.to_json}"
@@ -105,7 +105,7 @@ helpers do
 		#check token's lifetime
 		if Time.parse(token["lifetime"]) < Time.now and try_expirating
 			datas = {
-				"error" => 403,
+				"status" => 403,
 				"message" => "Expirated token"
 			}
 			return false, "#{datas.to_json}"
@@ -152,6 +152,27 @@ helpers do
 		}
 		verbToLabel[verb]
 	end
+
+	def set_color_status status
+		status_array = {
+			"2"=>"success_status",
+			"4"=>"error_status"
+		}
+		status.to_s[0]
+		status_array[status.to_s[0]]
+	end
+end
+
+#----------------------------------------------------------
+# ****************SCOPE HANDLING***************************
+#----------------------------------------------------------
+
+class Scope
+	def initialize name, type
+		@name = name
+		@type = type
+		@exceptions = []
+	end
 end
 
 
@@ -169,7 +190,7 @@ get "/" do
 	puts datas["routes"].keys
 	locals[:datas] = datas
 	locals[:bloc_id] = 0
-	locals[:label_type] = "warning"
+	locals[:label_type] = "info"
 	slim :doc, :locals => locals
 end
 
@@ -329,7 +350,7 @@ post "/auth/token" do
 	status 200
 
 	datas = {
-		"error" => 200,
+		"status" => 200,
 		"lifetime" => lifetime,
 		"token" => datas["hash"],
 		"refresh_token" => datas["refresh_token"]
@@ -514,7 +535,7 @@ post "/projects" do
 	settings.mongo_db['projects'].insert datas
 
 	datas = {
-		"error" => 200,
+		"status" => 200,
 		"message" => "Project inserted"
 	}
 	"#{datas.to_json}"
@@ -547,4 +568,8 @@ get "/test/docs" do
 	content_type :json
 	datas = JSON.parse(File.read("docs/api_doc.json"))
 	"#{JSON.pretty_generate(datas)}"
+end
+
+get "/test/status/:verb" do
+	"#{set_color_status params[:verb]}"
 end
