@@ -7,9 +7,12 @@
 				.container.notification ng-show="notification#{bloc_id}"
 					-for action in datas["routes"][section] do
 						- bloc_id+=1
+						- type_label = get_label_type action["verb"]
 						.row
 							.col-md-11.col-md-offset-1
-								p ng-click="notification#{bloc_id} = !notification#{bloc_id}" #{action["verb"]} #{action["path"]} #{action["description"]}
+								p ng-click="notification#{bloc_id} = !notification#{bloc_id}" 
+									span.label class="label-#{type_label}"  #{action["verb"]}   
+									| #{action["path"]} #{action["description"]}
 								.container ng-show="notification#{bloc_id}"
 									-if action["headers"]
 										.row

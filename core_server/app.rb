@@ -142,6 +142,16 @@ helpers do
 
 		return true, nil
 	end 
+
+	def get_label_type verb
+		verbToLabel = {
+			"GET" => "success",
+			"POST" => "warning",
+			"DELETE" => "danger",
+			"PUT"=>"primary"
+		}
+		verbToLabel[verb]
+	end
 end
 
 
@@ -159,6 +169,7 @@ get "/" do
 	puts datas["routes"].keys
 	locals[:datas] = datas
 	locals[:bloc_id] = 0
+	locals[:label_type] = "warning"
 	slim :doc, :locals => locals
 end
 
