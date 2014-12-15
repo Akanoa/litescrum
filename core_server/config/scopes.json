@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "type": "authorize",
+    "exceptions": [
+
+    ]
+  },
+  "core_client": {
+    "type": "forbidden",
+    "exceptions": [
+        "POST /auth/register",
+        "POST /auth/login"
+    ]
+  },
+  "read_only": {
+    "type": "authorize",
+    "exceptions": [
+        "GET /projects/",
+        "GET /projects/:id"
+    ]
+  }
+}

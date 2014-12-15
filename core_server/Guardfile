@@ -11,6 +11,6 @@ guard 'livereload' do
   watch(%r{views/.+\.(erb|haml|slim|styl)$})
   watch(%r{public/css/.+\.(css|js)$})
   watch(%r{^style/(.+\.styl)$})
-  watch(%r{^docs/(.+\.json)$})
+  watch(%r{^config/(.+\.json)$})
   watch(%r{^script/(.+\.coffee)$})
 end

@@ -1,0 +1,11 @@
+{
+	"GET /projects":{
+		"headers":["secret"]
+	},
+	"GET /projects/:id":{
+		"headers":["secret"]
+	},
+	"POST /projects":{
+		"params":["secret", "name"]
+	}
+}

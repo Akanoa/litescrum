@@ -1,6 +1,6 @@
 {
   "routes": {
-    "Authentification":[
+    "Authentifications":[
       {
         "path":"/auth/token",
         "verb":"POST",

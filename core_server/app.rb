@@ -43,6 +43,22 @@ lifetime_tokens = {
 }
 
 #----------------------------------------------------------
+# ****************SCOPE HANDLING***************************
+#----------------------------------------------------------
+
+route_exceptions = [
+	"POST /auth/register",
+	"POST /auth/login",
+	"POST /auth/token/refresh",
+	"GET /",
+	"GET /routes"
+]
+
+scopes = JSON.parse(File.read("config/scopes.json"))
+policies = JSON.parse(File.read("config/policies.json"))
+token = nil
+
+#----------------------------------------------------------
 # customs helpers
 #----------------------------------------------------------
 
@@ -66,10 +82,10 @@ helpers do
 		return settings.mongo_db["tokens"].find_one(:_id => BSON::ObjectId(id)).to_json
 	end
 
-	def verif_token params,try_expirating=true
+	def verif_token secret, try_expirating=true
 
 		#check if secret is provided
-		if !params[:secret]
+		if !secret
 			datas = {
 				"status" => 403,
 				"message" => "secret must be provided"
@@ -78,7 +94,8 @@ helpers do
 		end
 	
 		#retrieve token from api_key
-		token = get_token_by_hash params[:secret]
+		puts secret
+		token = get_token_by_hash secret
 		token_exists = token=="null" ? false : true
 
 		#check if provided token exists
@@ -94,7 +111,7 @@ helpers do
 		token = JSON.parse(token)
 
 		#check if provided token is correct
-		if token["hash"] != params[:secret]
+		if token["hash"] != secret
 			datas = {
 				"status" => 403,
 				"message" => "Wrong secret"
@@ -119,8 +136,8 @@ helpers do
 		required.each do |param|
 			if !params.keys.include? param
 				datas = {
-					"error" => 403,
-					"message" => "Provided parameters are incorrects"
+					"status" => 403,
+					"message" => "Provided parameters are incorrects, param #{param} required"
 				}
 				return false, "#{datas.to_json}"
 			end
@@ -129,11 +146,11 @@ helpers do
 		return true, nil
 	end 
 
-	def check_headers env,required
+	def check_headers required
 		required.each do |param|
 			if !env.keys.include? "HTTP_"+param.split.join("_").upcase
 				datas = {
-					"error" => 403,
+					"status" => 403,
 					"message" => "Provided parameters are incorrects, header #{param} required"
 				}
 				return false, "#{datas.to_json}"
@@ -161,20 +178,86 @@ helpers do
 		status.to_s[0]
 		status_array[status.to_s[0]]
 	end
-end
 
-#----------------------------------------------------------
-# ****************SCOPE HANDLING***************************
-#----------------------------------------------------------
-
-class Scope
-	def initialize name, type
-		@name = name
-		@type = type
-		@exceptions = []
+	def scope_verification
+		#check if this routes must be scoped
+		if scope_exceptions.include? env["sinatra.route"]
+			true
+		end
+		#check scope exists?
+		if !scopes.include? param["token"]["scope"]
+			false
+		end
+		#check authorization
+		scope = scopes[param["token"]["scope"]]
+		if scope["type"] == "authorize"
+			for route in scope["exceptions"] do
+				if route == env["sinatra.route"]
+					return true
+				end
+			end
+			return false
+		elsif scope["type"] == "forbidden"
+			for route in scope["exceptions"] do
+				if route == env["sinatra.route"]
+					return false
+				end
+			end
+			return true
+		end
 	end
 end
 
+
+#----------------------------------------------------------
+# ****************BEFORE FILTER****************************
+#----------------------------------------------------------
+
+before do
+	route = env["REQUEST_METHOD"]+" "+env["PATH_INFO"]
+	#check if route out of REST api
+	if !route_exceptions.include? route
+		#check if policies exists
+		if policies.include? route
+			if policies[route]["headers"] and policies[route]["headers"].length
+				ok, result = check_headers policies[route]["headers"]
+				if !ok
+					status 403
+					content_type :json
+					halt result
+				end
+			end
+
+			if policies[route]["params"] and policies[route]["params"].length
+				params = env["rack.request.form_hash"]
+				#check if all parameters are provided
+				ok, res = check_params params, policies[route]["params"]
+
+				if !ok
+					status 403
+					content_type :json
+					halt res
+				end	
+
+			end
+
+		end
+
+		if env["REQUEST_METHOD"] == "GET"
+			secret = env["HTTP_SECRET"]
+		else
+			secret = env["rack.request.form_hash"]["secret"]
+		end
+
+		ok, result = verif_token secret
+		if !ok
+			status 403
+			content_type :json
+			halt result
+		end
+		token = result
+	end
+end
 
 #----------------------------------------------------------
 # ****************CONTROLLERS******************************
@@ -186,7 +269,9 @@ end
 #----------------------------------------------------------
 
 get "/" do
-	datas = JSON.parse(File.read("docs/api_doc.json"))
+	status 200
+	content_type :html
+	datas = JSON.parse(File.read("config/api_doc.json"))
 	puts datas["routes"].keys
 	locals[:datas] = datas
 	locals[:bloc_id] = 0
@@ -321,12 +406,19 @@ post "/auth/token" do
 	content_type :json
 	status 403
 
-	ok, result = verif_token params
+	ok, result = verif_token params[:secret]
 	if !ok
 		return result
 	end
 
-	token = result
+	if token["type"] != "api_key"
+		datas = {
+			"status" => 403,
+			"message" => "Wrong type of token"
+		}
+		"#{datas.to_json}"
+	end
+
 
 	#if user asks an unknown scope, generate an read_only token
 	scope = (params[:scope] and available_scopes.include? params[:scope]) ? params[:scope] : "read_only"
@@ -363,7 +455,7 @@ post "/auth/token/refresh" do
 	status 403
 	content_type :json
 
-	ok, result = verif_token params,false
+	ok, result = verif_token params[:secret],false
 	if !ok
 		return result
 	end
@@ -373,7 +465,7 @@ post "/auth/token/refresh" do
 	#check if refresh_token is provided
 	if !params[:refresh_token]
 		datas = {
-			"error" => 403,
+			"status" => 403,
 			"message" => "refresh_token must be provided"
 		}
 		return "#{datas.to_json}"
@@ -383,7 +475,7 @@ post "/auth/token/refresh" do
 	#check if provided refresh_token is correct
 	if token["refresh_token"] != params[:refresh_token]
 		datas = {
-			"error" => 403,
+			"status" => 403,
 			"message" => "Wrong refresh_token"
 		}
 		return "#{datas.to_json}"
@@ -414,7 +506,7 @@ post "/auth/token/refresh" do
 	)
 
 	datas = {
-		"error" => 200,
+		"status" => 200,
 		"lifetime" => lifetime,
 		"token" => hash,
 		"refresh_token" => refresh_token
@@ -439,7 +531,7 @@ get "/users" do
 	status 404
 	content_type :json
 	datas = {
-		"error" => 404,
+		"status" => 404,
 		"message" => "Not Implemented yet"
 	}
 	"#{datas.to_json}"
@@ -453,23 +545,7 @@ end
 
 #retrieve projects
 get "/projects" do
-	status 403
-	content_type :json
-
-	ok, result = check_headers env,["secret"]
-	if !ok
-		return result
-	end
-
-	params["secret"] = env["HTTP_SECRET"]
- 
-	ok, result = verif_token params
-	if !ok
-		return result
-	end
-
-
-	token = result	
+	
 	status 200
 
 	results = JSON.parse(settings.mongo_db['projects'].find.to_a.to_json)
@@ -500,7 +576,7 @@ get "/projects/:id" do
 	token = result	
 	status 404
 	datas = {
-		"error" => 404,
+		"status" => 404,
 		"message" => "Not Implemented yet"
 	}
 	"#{datas.to_json}"
@@ -508,24 +584,7 @@ end
 
 #create a project
 post "/projects" do
-	status 403
-	content_type :json
-
-	ok, result = verif_token params
-	if !ok
-		return result
-	end
-
-	token = result	
-	status 200
-
-	#check if all parameters are provided
-	ok, res = check_params params,["name"]
-
-	if !ok
-		return res
-	end	
-
+	
 	datas = {
 		"name" => params[:name],
 		"state" => "active",
@@ -554,7 +613,7 @@ put "/projects/:id" do
 	token = result	
 	status 404
 	datas = {
-		"error" => 404,
+		"status" => 404,
 		"message" => "Not Implemented yet"
 	}
 	"#{datas.to_json}"
@@ -566,10 +625,14 @@ end
 
 get "/test/docs" do
 	content_type :json
-	datas = JSON.parse(File.read("docs/api_doc.json"))
-	"#{JSON.pretty_generate(datas)}"
+	datas = JSON.parse(File.read("config/api_doc.json"))
+	"#{JSON.pretty_generate(scopes)}"
 end
 
 get "/test/status/:verb" do
 	"#{set_color_status params[:verb]}"
+end
+
+get '/test/env/:id' do
+	"#{JSON.pretty_generate(env)}"
 end
