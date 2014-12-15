@@ -49,6 +49,8 @@ lifetime_tokens = {
 route_exceptions = [
 	"POST /auth/register",
 	"POST /auth/login",
+	"GET /auth/register",
+	"GET /auth/login",
 	"POST /auth/token/refresh",
 	"GET /",
 	"GET /routes"
