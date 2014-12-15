@@ -216,7 +216,24 @@ end
 #----------------------------------------------------------
 
 before do
+	#retrieves route
 	route = env["REQUEST_METHOD"]+" "+env["PATH_INFO"]
+	#checks if this route exists
+	routes_tmp = []
+	routes = []
+	Sinatra::Application.each_route do |route_|
+		if route_.verb != "HEAD"
+	 		routes_tmp.push [route_.verb, route_.path]
+	 	end
+	end
+	routes_tmp.sort_by! {|m| m[1]}
+	routes_tmp.each do |route_|
+		routes.push route_.join(" ")
+	end
+
+	if !routes.include? route
+		halt slim :error_404, :locals => locals
+	end 
 	#check if route out of REST api
 	if !route_exceptions.include? route
 		#check if policies exists

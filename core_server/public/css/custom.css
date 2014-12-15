@@ -1,6 +1,14 @@
 body {
   background-color: #fff;
 }
+.img-404 {
+  width: 400px;
+  margin: auto;
+  margin-top: 5%;
+}
+.img-404 img {
+  border-radius: 2px;
+}
 .form-control {
   margin-bottom: 2%;
 }
