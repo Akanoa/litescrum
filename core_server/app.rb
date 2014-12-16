@@ -181,7 +181,7 @@ helpers do
 		status_array[status.to_s[0]]
 	end
 
-	def scope_verification token, scopes
+	def scope_verification token, scopes, route_sinatra
 		#check scope exists?
 		if !scopes.include? token["scope"]
 			false
@@ -190,14 +190,14 @@ helpers do
 		scope = scopes[token["scope"]]
 		if scope["type"] == "authorize"
 			for route in scope["exceptions"] do
-				if route == env["sinatra.route"]
+				if route == route_sinatra
 					return true
 				end
 			end
 			return false
 		elsif scope["type"] == "forbidden"
 			for route in scope["exceptions"] do
-				if route == env["sinatra.route"]
+				if route == route_sinatra
 					return false
 				end
 			end
@@ -281,7 +281,7 @@ before do
 		end
 		token = result
 
-		ok = scope_verification token, scopes
+		ok = scope_verification token, scopes, route
 
 		if !ok
 			status 403
@@ -290,7 +290,7 @@ before do
 				"status" => 403,
 				"message" => "Scope #{token["scope"]} not allowed"
 			}
-			halt "#{result.to_json}"
+			halt "#{result.to_json}a"
 		end
 
 	end

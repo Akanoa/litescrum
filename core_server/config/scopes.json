@@ -16,7 +16,8 @@
     "type": "authorize",
     "exceptions": [
         "GET /projects/",
-        "GET /projects/:id"
+        "GET /projects/:id",
+        "POST /projects/:id"
     ]
   }
 }
