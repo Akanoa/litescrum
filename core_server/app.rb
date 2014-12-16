@@ -214,6 +214,9 @@ end
 before do
 	#retrieves route
 	route = env["REQUEST_METHOD"]+" "+env["PATH_INFO"]
+	if route_exceptions.include? route
+		return true
+	end
 	#checks if this route exists
 	routes_tmp = []
 	routes = []
