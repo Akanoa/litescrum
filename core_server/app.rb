@@ -229,12 +229,18 @@ before do
 
 	#refactoring route
 	verb = route.split[0]
-	splitted =  (route.split[1].split "/")[1..-1]
-	if splitted.length > 1
-		splitted[1] = ":id"
+
+	if (route.split[1].split "/") != []
+		splitted =  (route.split[1].split "/")[1..-1]
+		if splitted.length > 1
+			splitted[1] = ":id"
+		end
+		splitted = splitted.join("/")
+	else
+		splitted = ""
 	end
 
-	route = verb+" /"+splitted.join("/")
+	route = verb+" /"+splitted
 
 	if !routes.include? route
 		halt slim :error_404, :locals => locals

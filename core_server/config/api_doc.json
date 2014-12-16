@@ -86,6 +86,12 @@
             "message":"Projects as JSON object",
             "type":"JSON"
           },
+
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
           {
             "status":403,
             "message":"Invalid token",
@@ -111,6 +117,11 @@
             "status":200,
             "message":"Project as JSON object",
             "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
           },
           {
             "status":403,
@@ -145,6 +156,552 @@
             "type":"JSON"
           },
           {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      } 
+    ],
+
+
+
+
+
+
+     "Sprints": [
+      {
+        "path":"/sprints",
+        "verb":"GET",
+        "description":"retieves all sprints allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Sprints as JSON object",
+            "type":"JSON"
+          },
+
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/sprints/:id",
+        "verb":"GET",
+        "description":"retrieves project with id==:id allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Sprints as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/sprints",
+        "verb":"POST",
+        "description":"create a project",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "name",
+            "description":"name of new sprint",
+            "type":"string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"Sprint inserted",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      } 
+    ],
+
+
+
+
+
+
+
+     "User_stories": [
+      {
+        "path":"/user_stories",
+        "verb":"GET",
+        "description":"retieves all user_stories allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"User_stories as JSON object",
+            "type":"JSON"
+          },
+
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/user_stories/:id",
+        "verb":"GET",
+        "description":"retrieves user_story with id==:id allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"User_stories as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/user_stories",
+        "verb":"POST",
+        "description":"create a user_story",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "name",
+            "description":"name of new user_story",
+            "type":"string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"user_story inserted",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      } 
+    ],
+
+
+
+
+
+
+
+     "Tasks": [
+      {
+        "path":"/tasks",
+        "verb":"GET",
+        "description":"retieves all tasks allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Tasks as JSON object",
+            "type":"JSON"
+          },
+
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/tasks/:id",
+        "verb":"GET",
+        "description":"retrieves tasks with id==:id allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Task as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/tasks",
+        "verb":"POST",
+        "description":"create a task",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "name",
+            "description":"name of new task",
+            "type":"string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"Project inserted",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      } 
+    ],
+
+
+
+
+
+     "Daily_reviews": [
+      {
+        "path":"/daily_reviews",
+        "verb":"GET",
+        "description":"retieves all daily_reviews allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"daily_reviews as JSON object",
+            "type":"JSON"
+          },
+
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/daily_reviews/:id",
+        "verb":"GET",
+        "description":"retrieves daily_review with id==:id allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Daily_review as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/daily_reviews",
+        "verb":"POST",
+        "description":"ceate a new daily_review",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "name",
+            "description":"name of new daily_review",
+            "type":"string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"Daily_review inserted",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      } 
+    ],
+
+
+
+
+
+
+     "Users": [
+      {
+        "path":"/users",
+        "verb":"GET",
+        "description":"retieves all users allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"Users as JSON object",
+            "type":"JSON"
+          },
+
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/users/:id",
+        "verb":"GET",
+        "description":"retrieves user with id==:id allowed by your token",
+        "headers": [
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          }
+        ],
+        "params":null,
+        "returns":[
+          {
+            "status":200,
+            "message":"User as JSON object",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
+            "status":403,
+            "message":"Invalid token",
+            "type":"string"
+          }
+        ]
+      },
+      {
+        "path":"/users",
+        "verb":"POST",
+        "description":"create a user",
+        "headers": null,
+        "params":[
+          {
+            "var": "secret",
+            "description": "token access",
+            "type": "string",
+            "require":true
+          },
+          {
+            "var": "name",
+            "description":"name of new user",
+            "type":"string",
+            "require":true
+          }
+        ],
+        "returns":[
+          {
+            "status":200,
+            "message":"User inserted",
+            "type":"JSON"
+          },
+          {
+            "status":400,
+            "message":"Bad request",
+            "type":"string"
+          },
+          {
             "status":403,
             "message":"Invalid token",
             "type":"string"
@@ -152,6 +709,7 @@
         ]
       } 
     ]
-  },
+
+ },
   "models": {}
 }
