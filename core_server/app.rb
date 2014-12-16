@@ -181,17 +181,13 @@ helpers do
 		status_array[status.to_s[0]]
 	end
 
-	def scope_verification
-		#check if this routes must be scoped
-		if scope_exceptions.include? env["sinatra.route"]
-			true
-		end
+	def scope_verification token, scopes
 		#check scope exists?
-		if !scopes.include? param["token"]["scope"]
+		if !scopes.include? token["scope"]
 			false
 		end
 		#check authorization
-		scope = scopes[param["token"]["scope"]]
+		scope = scopes[token["scope"]]
 		if scope["type"] == "authorize"
 			for route in scope["exceptions"] do
 				if route == env["sinatra.route"]
@@ -230,6 +226,15 @@ before do
 	routes_tmp.each do |route_|
 		routes.push route_.join(" ")
 	end
+
+	#refactoring route
+	verb = route.split[0]
+	splitted =  (route.split[1].split "/")[1..-1]
+	if splitted.length > 1
+		splitted[1] = ":id"
+	end
+
+	route = verb+" /"+splitted.join("/")
 
 	if !routes.include? route
 		halt slim :error_404, :locals => locals
@@ -275,6 +280,19 @@ before do
 			halt result
 		end
 		token = result
+
+		ok = scope_verification token, scopes
+
+		if !ok
+			status 403
+			content_type :json
+			result = {
+				"status" => 403,
+				"message" => "Scope #{token["scope"]} not allowed"
+			}
+			halt "#{result.to_json}"
+		end
+
 	end
 end
 
@@ -584,15 +602,7 @@ end
 
 #retrieve project id
 get "/projects/:id" do
-	status 403
-	content_type :json
 
-	ok, result = verif_token params
-	if !ok
-		return result
-	end
-
-	token = result	
 	status 404
 	datas = {
 		"status" => 404,
@@ -620,16 +630,8 @@ post "/projects" do
 end
 
 #update a project
-put "/projects/:id" do
-	status 403
-	content_type :json
+post "/projects/:id" do
 
-	ok, result = verif_token params
-	if !ok
-		return result
-	end
-
-	token = result	
 	status 404
 	datas = {
 		"status" => 404,
